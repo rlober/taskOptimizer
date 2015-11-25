@@ -32,7 +32,6 @@ class taskOptimizerModule : public yarp::os::RFModule
         bool waitingForVariables;
         bool waitingForCostData;
 
-        std::string logDirPath;
         int nDims;
         Eigen::VectorXd optVariables, costData;
 

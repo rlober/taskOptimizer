@@ -141,7 +141,6 @@ bool taskOptimizerModule::configure(yarp::os::ResourceFinder &rf)
     portsOpened = portsOpened && optParamsPortIn.open("/opt/solver/params:i");
 
     if(portsOpened){
-        logDirPath = "/home/ryan/Desktop/tmp-test/"; // Get from RF
 
         waitingForVariables = true;
         waitingForCostData = true;
@@ -183,11 +182,11 @@ bool taskOptimizerModule::close()
 bool taskOptimizerModule::initializeSolver(yarp::os::Bottle* optParamsBottle)
 {
     bopt_params = smlt::optParameters();
+    int bottleIndex = 0;
 
-    bopt_params.dataLogDir = logDirPath;
+    nDims = optParamsBottle->get(bottleIndex).asInt(); // number of optimization variables
 
-    nDims = optParamsBottle->get(0).asInt(); // number of optimization variables
-
+    bottleIndex++;
     optVariables.resize(nDims);
     costData.resize(1);
 
@@ -196,9 +195,21 @@ bool taskOptimizerModule::initializeSolver(yarp::os::Bottle* optParamsBottle)
 
     for(int i=0; i<nDims; i++)
     {
-        bopt_params.searchSpaceMinBound(i) = optParamsBottle->get(i+1).asDouble();
-        bopt_params.searchSpaceMaxBound(i) = optParamsBottle->get(i+1+nDims).asDouble();
+        bopt_params.searchSpaceMinBound(i) = optParamsBottle->get(bottleIndex).asDouble();
+        bottleIndex++;
     }
+    for(int i=0; i<nDims; i++)
+    {
+        bopt_params.searchSpaceMaxBound(i) = optParamsBottle->get(bottleIndex).asDouble();
+        bottleIndex++;
+    }
+
+    // logDirPath = "/home/ryan/Desktop/tmp-test/"; // Get from RF
+    // bopt_params.dataLogDir = "/home/ryan/Desktop/tmp-test/";
+    bopt_params.dataLogDirPrefix = optParamsBottle->get(bottleIndex).asString();
+    bottleIndex++;
+    bopt_params.dataLogDir = optParamsBottle->get(bottleIndex).asString();
+
     bopt_params.normalize = true;
 
     // bopt_params.gridSteps.resize(nDims);
