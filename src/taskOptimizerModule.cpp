@@ -216,9 +216,9 @@ bool taskOptimizerModule::initializeSolver(yarp::os::Bottle* optParamsBottle)
     // bopt_params.gridSteps << 10; //, 10;
 
     bopt_params.gridSteps = Eigen::VectorXi::Constant(nDims, 20);
-    bopt_params.maxIter = 25;
+    bopt_params.maxIter = 30;
     bopt_params.logData = true;
-    bopt_params.minConfidence = 99.5;
+    bopt_params.minConfidence = 99;
 
 
     bopt_params.costCovariance = Eigen::MatrixXd::Identity(nDims,nDims);//testTrajectory->getBoptCovarianceMatrix();

@@ -34,3 +34,7 @@ for iterationIndex in range(len(trajOnlyDir)):
     TP.plotTrajectory(savePlot, showPlot, saveDir)
 
     plotBayesianOptimization(solverDir, iterationIndex, savePlot, showPlot, saveDir)
+
+    CP = costPlotter(trajDir + trajLatestDir)
+
+    CP.plotCosts(savePlot, showPlot, saveDir)

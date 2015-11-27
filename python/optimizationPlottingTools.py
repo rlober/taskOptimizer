@@ -122,10 +122,10 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
 
     ax_cost_3d = fig.add_subplot(2, 3, 1, projection='3d')
     surfGP = ax_cost_3d.plot_surface(X1mat, X2mat, Means, rstride=strideStep, cstride=strideStep, cmap=cm.jet)
-    ax_cost_3d.set_ylabel('X (m)', fontsize=fs_labels)
+    ax_cost_3d.set_ylabel('Z (m)', fontsize=fs_labels)
     ax_cost_3d.set_xlabel('time (s)', fontsize=fs_labels)
     ax_cost_3d.set_zlabel('Cost Mean', fontsize=fs_labels)
-
+    ax_cost_3d.set_zlim(top=50)
 
 
     ax_cost_2d_means = fig.add_subplot(2, 3, 2)
@@ -137,7 +137,7 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
     ax_cost_2d_means.plot(optimalParameters[0], optimalParameters[1], color='orange', marker='s', ms = 15)
 
 
-    ax_cost_2d_means.set_ylabel('X (m)', fontsize=fs_labels)
+    ax_cost_2d_means.set_ylabel('Z (m)', fontsize=fs_labels)
     ax_cost_2d_means.set_xlabel('time (s)', fontsize=fs_labels)
     ax_cost_2d_means.set_title('Cost Mean', fontsize=fs_labels)
 
@@ -151,7 +151,7 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
         ax_cost_2d_vars.plot(gpParams[0,:], gpParams[1,:], 'go', ms = 10)
     ax_cost_2d_vars.plot(optimalParameters[0], optimalParameters[1], color='orange', marker='s', ms = 15)
 
-    ax_cost_2d_vars.set_ylabel('X (m)', fontsize=fs_labels)
+    ax_cost_2d_vars.set_ylabel('Z (m)', fontsize=fs_labels)
     ax_cost_2d_vars.set_xlabel('time (s)', fontsize=fs_labels)
     ax_cost_2d_vars.set_title('Cost Variance', fontsize=fs_labels)
 
@@ -160,9 +160,10 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
 
     ax_lcb_3d = fig.add_subplot(2, 3, 4, projection='3d')
     ax_lcb_3d.plot_surface(X1mat, X2mat, LCBs, rstride=strideStep, cstride=strideStep, cmap=cm.jet)
-    ax_lcb_3d.set_ylabel('X (m)', fontsize=fs_labels)
+    ax_lcb_3d.set_ylabel('Z (m)', fontsize=fs_labels)
     ax_lcb_3d.set_xlabel('time (s)', fontsize=fs_labels)
     ax_lcb_3d.set_zlabel('LCB', fontsize=fs_labels)
+    ax_lcb_3d.set_zlim(top=50)
 
 
 
@@ -170,7 +171,7 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
     ax_lcb_2d.contourf(X1mat, X2mat, LCBs, rstride=strideStep, cstride=strideStep, cmap=cm.jet)
     ax_lcb_2d.plot(optimalParameters[0], optimalParameters[1], color='orange', marker='s', ms = 15)
 
-    ax_lcb_2d.set_ylabel('X (m)', fontsize=fs_labels)
+    ax_lcb_2d.set_ylabel('Z (m)', fontsize=fs_labels)
     ax_lcb_2d.set_xlabel('time (s)', fontsize=fs_labels)
     ax_lcb_2d.set_title('LCB', fontsize=fs_labels)
 

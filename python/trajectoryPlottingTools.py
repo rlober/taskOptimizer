@@ -13,6 +13,77 @@ except:
     import pickle
 
 import matplotlib.patches as patches
+import fnmatch
+import os
+
+
+
+class costPlotter():
+
+    def __init__(self, pathToCostFiles):
+
+        self.foundGoalCosts = False
+        self.foundTrackingCosts = False
+        self.foundEnergyCosts = False
+        self.foundTotalCosts = False
+
+        self.readFromText(pathToCostFiles)
+
+
+
+    def readFromText(self, pathToCostFiles):
+
+        removeLength = len("InstantaneousCost.txt")
+
+        for file in os.listdir(pathToCostFiles):
+            if fnmatch.fnmatch(file, '*InstantaneousCost.txt'):
+                costType = file[:-removeLength]
+                if costType=="goal":
+                    self.foundGoalCosts = True
+                    self.goalCosts = np.loadtxt(pathToCostFiles+"/"+file)
+
+                elif costType=="tracking":
+                    self.foundTrackingCosts = True
+                    self.trackingCosts = np.loadtxt(pathToCostFiles+"/"+file)
+
+                elif costType=="energy":
+                    self.foundEnergyCosts = True
+                    self.energyCosts = np.loadtxt(pathToCostFiles+"/"+file)
+
+                elif costType=="total":
+                    self.foundTotalCosts = True
+                    self.totalCosts = np.loadtxt(pathToCostFiles+"/"+file)
+
+
+
+    def plotCosts(self, savePlot=True, showPlot=True, saveDir="./", extension=".png"):
+
+        fig = plt.figure(num=1, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
+        if self.foundGoalCosts:
+            plt.plot(self.goalCosts[:,0], self.goalCosts[:,1], color='g', lw=2, label='goal')
+
+        if self.foundTrackingCosts:
+            plt.plot(self.trackingCosts[:,0], self.trackingCosts[:,1], color='b', lw=2, label='tracking')
+
+        if self.foundEnergyCosts:
+            plt.plot(self.energyCosts[:,0], self.energyCosts[:,1], color='y', lw=2, label='energy')
+
+        if self.foundTotalCosts:
+            plt.plot(self.totalCosts[:,0], self.totalCosts[:,1], color='r', lw=2, label='total')
+
+        plt.legend(loc='upper left')
+        plt.xlabel("time (s)")
+        plt.ylabel("cost")
+
+
+
+        if savePlot:
+            fig.savefig(saveDir + "/costs" + extension)
+
+        if showPlot:
+            plt.show()
+        else:
+            plt.close(fig)
 
 
 class trajectoryPlotter():
@@ -84,10 +155,14 @@ class trajectoryPlotter():
             ax_3d.plot(self.startWaypoint[0:1],self.startWaypoint[1:2],self.startWaypoint[2:], 'go', ms=10)
             ax_3d.plot(self.endWaypoint[0:1],self.endWaypoint[1:2],self.endWaypoint[2:], 'ro', ms=10)
             ax_3d.set_title('3D Trajectory Plot')
-            limRange = abs(self.endWaypoint[2:] - self.startWaypoint[2:])/2
+
+            zMin = np.amin(self.pos[:,2]) - 0.05
+            zMax = np.amax(self.pos[:,2]) + 0.05
+
+            limRange = abs(zMax - zMin)/2
             xlims = [self.startWaypoint[0]+limRange, self.startWaypoint[0]-limRange]
             ylims = [self.startWaypoint[1]-limRange, self.startWaypoint[1]+limRange]
-            zlims = [-0.05, 0.30]
+            zlims = [zMin,zMax]
             LimList = [xlims, ylims, zlims]
             ax_3d.set_xlim(xlims)
             ax_3d.set_ylim(ylims)
@@ -117,7 +192,7 @@ class trajectoryPlotter():
         for dd in range(self.n_DoF):
             ax_pos = plt.subplot2grid((4,self.n_DoF), (0,dd))
             mean_plot, = ax_pos.plot(self.timeline, self.pos[:,dd])
-            real_mean_plot, = ax_pos.plot(self.real_timeline, self.real_pos[:,dd], color='#2A7E43', lw=2, ls='--')
+            real_mean_plot, = ax_pos.plot(self.real_timeline, self.real_pos[:,dd], color='#2A7E43', lw=2, ls='-')
             waypoints_plot, = ax_pos.plot(self.waypointTimes[:],self.waypoints[:,dd], 'bo', ms=8, alpha=0.8)
             ax_pos.plot(self.startWaypointTime,self.startWaypoint[dd], 'go', ms=8, alpha=0.8)
             ax_pos.plot(self.endWaypointTime,self.endWaypoint[dd], 'ro', ms=8, alpha=0.8)
@@ -135,7 +210,7 @@ class trajectoryPlotter():
             if dd==2:
                 ax_pos.fill_between(np.arange(-0.5,maxtime,0.01), self.endWaypoint[dd]+0.03, self.endWaypoint[dd]-0.03, alpha=0.1, facecolor=var_color, edgecolor=None)
 
-            ax_pos.add_patch(patches.Rectangle((1.5, 0.12), maxtime, .01, alpha=var_alpha, facecolor='y', edgecolor=None))
+            ax_pos.add_patch(patches.Rectangle((1.0, 0.12), maxtime, .01, alpha=var_alpha, facecolor='y', edgecolor=None))
 
 
 
@@ -154,7 +229,7 @@ class trajectoryPlotter():
 
             ax_vel = plt.subplot2grid((4,self.n_DoF), (1,dd))
             ax_vel.plot(self.timeline, self.vel[:,dd])
-            ax_vel.plot(self.real_timeline, self.real_vel[:,dd], color='#2A7E43', lw=2, ls='--')
+            ax_vel.plot(self.real_timeline, self.real_vel[:,dd], color='#2A7E43', lw=2, ls='-')
             ax_vel.axhline(y = 0, c='red', ls='--', lw=2)
             ax_vel.set_title('DoF_'+dof_labels[dd], fontsize=fs)
             ax_vel.set_xlabel('time (s)', fontsize=fs)
@@ -163,7 +238,7 @@ class trajectoryPlotter():
 
             ax_acc = plt.subplot2grid((4,self.n_DoF), (2,dd))
             ax_acc.plot(self.timeline, self.acc[:,dd])
-            ax_acc.plot(self.real_timeline, self.real_acc[:,dd], color='#2A7E43', lw=2, ls='--')
+            ax_acc.plot(self.real_timeline, self.real_acc[:,dd], color='#2A7E43', lw=2, ls='-')
             ax_acc.axhline(y = 0, c='red', ls='--', lw=2)
             ax_acc.set_title('DoF_'+dof_labels[dd], fontsize=fs)
             ax_acc.set_xlabel('time (s)', fontsize=fs)
