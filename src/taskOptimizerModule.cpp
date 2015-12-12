@@ -69,6 +69,50 @@ bool taskOptimizerModule::updateModule()
     return true;
 }
 
+
+/**************************************************************************************************
+                                    Nested PortReader Class
+**************************************************************************************************/
+taskOptimizerModule::DataProcessor::DataProcessor(taskOptimizerModule& toModRef):toMod(toModRef)
+{
+    //do nothing
+}
+
+bool taskOptimizerModule::DataProcessor::read(yarp::os::ConnectionReader& connection)
+{
+    yarp::os::Bottle input, reply;
+    bool ok = input.read(connection);
+    if (!ok)
+        return false;
+
+    else{
+        toMod.parseRpcMessage(&input, &reply);
+        yarp::os::ConnectionWriter *returnToSender = connection.getWriter();
+        if (returnToSender!=NULL) {
+            reply.write(*returnToSender);
+        }
+        return true;
+    }
+}
+/**************************************************************************************************
+**************************************************************************************************/
+void taskOptimizerModule::parseRpcMessage(yarp::os::Bottle *input, yarp::os::Bottle *reply)
+{
+    reply->clear();
+    std::string query = input->get(0).asString();
+    if (query=="iteration") {
+        int currentIter = bopt_solution.nIter;
+        reply->addInt(currentIter);
+        if (currentIter>0) {
+            reply->addInt(bopt_solution.optimumFound);
+            for (int j=0; j < bopt_solution.optimalParameters.size(); j++){
+                reply->addDouble(bopt_solution.optimalParameters[j]);
+            }
+        }
+    }
+}
+
+
 bool taskOptimizerModule::checkPortConnections()
 {
     bool retVal = true;
@@ -139,19 +183,22 @@ bool taskOptimizerModule::configure(yarp::os::ResourceFinder &rf)
     portsOpened = portsOpened && costPortIn.open("/opt/solver/cost:i");
     portsOpened = portsOpened && optVarsPortOut.open("/opt/solver/vars:o");
     portsOpened = portsOpened && optParamsPortIn.open("/opt/solver/params:i");
+    portsOpened = portsOpened && rpcServerPort.open("/opt/solver/rpc:s");
 
     if(portsOpened){
-
+        bopt_solution = smlt::optSolution();
+        processor = new DataProcessor(*this);
+        rpcServerPort.setReader(*processor);
         waitingForVariables = true;
         waitingForCostData = true;
         initialize = true;
         return true;
     }
-
     else{
         std::cout << "Error opening module ports. Please check that yarpserver is running." << std::endl;
         return false;
     }
+
 
 }
 
@@ -165,6 +212,7 @@ bool taskOptimizerModule::interruptModule()
     costPortIn.close();
     optVarsPortOut.close();
     optParamsPortIn.close();
+    rpcServerPort.close();
     return true;
 }
 
@@ -209,6 +257,7 @@ bool taskOptimizerModule::initializeSolver(yarp::os::Bottle* optParamsBottle)
     bopt_params.dataLogDirPrefix = optParamsBottle->get(bottleIndex).asString();
     bottleIndex++;
     bopt_params.dataLogDir = optParamsBottle->get(bottleIndex).asString();
+    bottleIndex++;
 
     bopt_params.normalize = true;
 
@@ -228,6 +277,8 @@ bool taskOptimizerModule::initializeSolver(yarp::os::Bottle* optParamsBottle)
     std::cout << "Optimization parameters:\n" << bopt_params << std::endl;
 
     bopt_solver = new smlt::bayesianOptimization(bopt_params);
+
+    bopt_solver->setCovarianceScalingFactor(optParamsBottle->get(bottleIndex).asDouble());
 
 
 }

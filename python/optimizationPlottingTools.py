@@ -12,7 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from matplotlib import cm
 
-def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlot=True, saveDir="./", extension=".png"):
+def plot2DBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlot=True, saveDir="./", extension=".png"):
     onlyDir = [ d for d in os.listdir(optLogDir) if os.path.isdir(optLogDir + d)]
     onlyDir.sort()
 
@@ -90,7 +90,9 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
     LCBs = np.reshape(LCB, (nRows, nCols))
 
 
-
+    thresh = 30
+    Means = np.where(Means>thresh, thresh, Means)
+    LCBs = np.where(LCBs>thresh, thresh, LCBs)
 
 
 
@@ -184,6 +186,69 @@ def plotBayesianOptimization(optLogDir, stopIteration=-1, savePlot=True, showPlo
 
     cbaxes = fig.add_axes([0.02, 0.2, 0.03, 0.6])
     fig.colorbar(surfGP, cax=cbaxes)
+
+
+    if savePlot:
+        fig.savefig(saveDir + "/optimization" + extension)
+
+    if showPlot:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+
+
+def plotBayesianOptimization(optLogDir, savePlot=True, showPlot=True, saveDir="./", extension=".png"):
+    onlyDir = [ d for d in os.listdir(optLogDir) if os.path.isdir(optLogDir + d)]
+    onlyDir.sort()
+
+    iterDir = onlyDir[-1]
+
+    gpCosts_path            = optLogDir + iterDir + '/gpCosts.txt'
+    currentConfidence_path  = optLogDir + iterDir + '/currentConfidence.txt'
+    tau_path                = optLogDir + iterDir + '/tau.txt'
+
+    gpCosts             = np.loadtxt(gpCosts_path)
+
+
+    tauFunction = []
+    currentConfList = []
+    for iterDir in onlyDir[0:]:
+        tau_path = optLogDir + iterDir + '/tau.txt'
+        tauFunction.append(np.loadtxt(tau_path))
+        currentConfList.append(np.loadtxt(currentConfidence_path) )
+
+
+    tau = []
+    for tmp in tauFunction:
+        tau.append(tmp[()]) #weird 0D np array bug: http://stackoverflow.com/questions/773030/why-are-0d-arrays-in-numpy-not-considered-scalar
+    tau = np.array(tau)
+
+    currentConfidence = np.array(currentConfList)
+
+
+
+    fs_labels = 16
+    fs_title = 20
+
+    var_alpha = 0.3
+    var_color = 'r'
+
+    fig = plt.figure(num='Bayesian Optimization', figsize=(24, 12), dpi=80, facecolor='w', edgecolor='k')
+    ############################################################################################
+    ax_cost = fig.add_subplot(1, 2, 1)
+    ax_cost.plot(gpCosts)
+    ax_cost.set_xlabel('iteration', fontsize=fs_labels)
+    ax_cost.set_ylabel('tau value', fontsize=fs_labels)
+    ax_cost.set_title('tau function', fontsize=fs_labels)
+
+    ax_tau = fig.add_subplot(1, 2, 2)
+    ax_tau.plot(tau)
+    ax_tau.set_xlabel('iteration', fontsize=fs_labels)
+    ax_tau.set_ylabel('tau value', fontsize=fs_labels)
+    ax_tau.set_title('tau function', fontsize=fs_labels)
+
 
 
     if savePlot:
