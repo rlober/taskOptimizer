@@ -11,7 +11,7 @@ find_package(Eigen REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(SMLT REQUIRED)
 
-PKG_CHECK_MODULES(CMAES libcmaes REQUIRED)
+# PKG_CHECK_MODULES(CMAES libcmaes REQUIRED)
 
 if(SMLT_FOUND)
     message("Found SMLT version: ${SMLT_VERSION}" )
@@ -29,7 +29,7 @@ include_directories(include/
                     ${YARP_INCLUDE_DIRS}
                     ${SMLT_INCLUDE_DIRS}
                     ${Eigen_INCLUDE_DIRS}
-                    ${CMAES_INCLUDE_DIRS}
+                    # ${CMAES_INCLUDE_DIRS}
                     )
 
 add_executable(${PROJECT_NAME} ${folder_source} ${folder_header})
@@ -38,7 +38,7 @@ target_link_libraries(${PROJECT_NAME}
                         ${YARP_LIBRARIES}
                         ${SMLT_LIBRARIES}
                         ${Boost_LIBRARIES}
-                        ${CMAES_LIBRARIES}
+                        # ${CMAES_LIBRARIES}
                         )
 
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION bin)
